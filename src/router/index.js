@@ -20,8 +20,11 @@ const routes = [
   },
   {
     path: '/yes',
-    name: 'note',
     component: () => import('../views/Yes.vue')
+  },
+  {
+    path: '*',
+    component: () => import('../views/e404.vue')
   }
 ]
 
