@@ -23,6 +23,10 @@ const routes = [
     component: () => import('../views/Yes.vue')
   },
   {
+    path: '/sign',
+    component: () => import('../views/sign.vue')
+  },
+  {
     path: '*',
     component: () => import('../views/e404.vue')
   }

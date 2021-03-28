@@ -2,11 +2,13 @@
   <v-container fluid>
     <v-layout>
       <v-text-field
+            v-model="title"
             label="일할 장소"
             prepend-icon="mdi-map-marker"
           ></v-text-field>
 
           <v-text-field
+          v-model="content"
             label="할 일"
           ></v-text-field>
       <v-flex xs3>
@@ -66,22 +68,37 @@ export default {
     itemsPerPage: 30,
     items: [],
     title: '',
-    content: ''
+    content: '',
+    where: '',
+    what: ''
   }),
   mounted () {
+    this.get()
   },
   methods: {
-    post () {
+    async post () {
       const today = new Date()
       const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
       const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
       const dateTime = date + ' ' + time
-      this.items.push({
+      // this.items.push({
+      //   title: dateTime, where: this.title, what: this.content
+      // })
+      await this.$firebase.firestore().collection('notes').add({
         title: dateTime, where: this.title, what: this.content
       })
+      this.title = ''
+      this.content = ''
+      await this.get()
     },
-    get () {
-
+    async get () {
+      const snapshot = await this.$firebase.firestore().collection('notes').get()
+      this.items = []
+      snapshot.forEach(v => {
+        console.log(v.id)
+        this.items.push(v.data())
+      })
+      console.log(snapshot)
     },
     update () {
 
