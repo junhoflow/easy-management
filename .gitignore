@@ -24,3 +24,5 @@ pnpm-debug.log*
 
 # firebase는 깃에 커밋 X
 .firebase
+.firebaserc
+firebaseConfig.js
