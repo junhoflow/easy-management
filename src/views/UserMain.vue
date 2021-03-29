@@ -17,6 +17,7 @@
         ></v-text-field>
         <v-btn color="success" @click="post">출근하기</v-btn>
     </v-layout>
+    <p>{{yes}}</p>
     <v-data-iterator
       :items="items"
       :items-per-page.sync="itemsPerPage"
@@ -34,7 +35,7 @@
           >
             <v-card>
               <v-card-title class="subheading font-weight-bold">
-                {{ item.title }}
+                {{ item['title'] }}
               </v-card-title>
 
               <v-divider></v-divider>
@@ -44,14 +45,14 @@
                 <v-list-item>
                   <v-list-item-content>일한 장소 :</v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item.where }}
+                    {{ item["where"] }}
                   </v-list-item-content>
                 </v-list-item>
 
                 <v-list-item>
                   <v-list-item-content>한 일 :</v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item.what }}
+                    {{ item["what"] }}
                   </v-list-item-content>
                 </v-list-item>
 
@@ -76,11 +77,12 @@ export default {
     name: '',
     phone: '',
     money: '',
-    value: ''
+    value: '',
+    count: 0,
+    yes: ''
   }),
   created () {
     this.get()
-    this.read()
   },
   methods: {
     async post () {
@@ -91,21 +93,24 @@ export default {
       // this.items.push({
       //   title: dateTime, where: this.title, what: this.content
       // })
-      await this.$firebase.firestore().collection('notes').add({
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime).set({
         title: dateTime, where: this.title, what: this.content
       })
       this.title = ''
       this.content = ''
+      this.count++
       await this.get()
     },
     async get () {
-      const snapshot = await this.$firebase.firestore().collection('notes').get()
-      this.items = []
-      snapshot.forEach(v => {
-        console.log(v.id)
-        this.items.push(v.data())
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/').on('value', d => {
+        this.items = []
+        Object.values(d.val())
+        console.log(d)
+        console.log(Object)
+        console.log(Object.values(d.val()))
+        this.items = Object.values(d.val())
+      //  this.yes = d.val()
       })
-      console.log(snapshot)
     },
     update () {
 
@@ -115,15 +120,6 @@ export default {
     },
     infoPage () {
       this.$router.push('/userInfo')
-    },
-
-    userInfoEdit () {
-      this.$firebase.database().ref('users/' + this.$store.state.user.uid).set({ 이름: this.name, 전화번호: this.phone, 계좌번호: this.money })
-    },
-    read () {
-      this.$firebase.database().ref('users/' + this.$store.state.user.uid).on('value', d => {
-        this.value = d.val()
-      })
     }
   }
 }

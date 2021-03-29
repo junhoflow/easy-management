@@ -39,7 +39,7 @@ const routes = [
     component: () => import('../views/register.vue')
   },
   {
-    path: '*',
+    path: '/*',
     component: () => import('../views/e404.vue')
   }
 ]

@@ -14,6 +14,7 @@
       </v-col>
       <v-col cols="8">
         <v-text-field  v-model="name"
+        :rules="[rules.required]"
         ></v-text-field>
       </v-col>
     </v-row>
@@ -24,6 +25,7 @@
       </v-col>
       <v-col cols="8">
         <v-text-field v-model="phone"
+        :rules="[rules.required]"
           label="예시) 01012341234"
         ></v-text-field>
       </v-col>
@@ -35,6 +37,7 @@
       </v-col>
       <v-col cols="8">
         <v-text-field v-model="money"
+        :rules="[rules.required]"
           label="예시) 0000000000 신한"
         ></v-text-field>
       </v-col>
@@ -45,8 +48,13 @@
         <v-subheader>구분</v-subheader>
       </v-col>
       <v-col cols="8">
-          <v-select v-model="job" :items="['일용직', '정규직']" required></v-select>
+          <v-select v-model="job" :rules="[rules.required]" :items="['일용직', '정규직']" required></v-select>
       </v-col>
+    </v-row>
+    <v-row>
+      <v-spacer></v-spacer>
+      4가지 정보 모두 다 입력하셨나요?
+      <v-spacer></v-spacer>
     </v-row>
     <v-card-actions>
         <v-spacer></v-spacer>
@@ -65,7 +73,10 @@ export default {
     phone: '',
     money: '',
     job: '',
-    value: ''
+    value: '',
+    rules: {
+      required: value => !!value || '꼭 입력해주세요!'
+    }
   }),
   created () {
     this.read()
