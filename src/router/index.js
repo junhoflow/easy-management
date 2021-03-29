@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Home from '../views/sign.vue'
 
 Vue.use(VueRouter)
 
@@ -23,8 +23,20 @@ const routes = [
     component: () => import('../views/Yes.vue')
   },
   {
+    path: '/vuex',
+    component: () => import('../views/vuex.vue')
+  },
+  {
     path: '/sign',
     component: () => import('../views/sign.vue')
+  },
+  {
+    path: '/userInfo',
+    component: () => import('../views/UserInfo.vue')
+  },
+  {
+    path: '/register',
+    component: () => import('../views/register.vue')
   },
   {
     path: '*',
@@ -36,6 +48,10 @@ const router = new VueRouter({
   mode: 'history',
   base: process.env.BASE_URL,
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  if (Vue.prototype.$isFirebaseAuth) next()
 })
 
 export default router

@@ -1,5 +1,21 @@
 <template>
   <v-container fluid>
+    <v-card>
+      <v-subheader>개인 정보</v-subheader>
+      <v-card-text>
+        <v-text-field v-model="name" label="이름"></v-text-field>
+        <v-text-field v-model="phone" label="전화번호"></v-text-field>
+        <v-text-field v-model="money" label="계좌번호"></v-text-field>
+        <a >정확하게 입력하셔야 원활한 송금이 이루어질 수 있습니다</a>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="userInfoEdit">수정하기</v-btn>
+      </v-card-actions>
+      <v-card-text>
+        {{value}}
+      </v-card-text>
+    </v-card>
     <v-layout>
       <v-text-field
             v-model="title"
@@ -61,8 +77,8 @@
     </v-data-iterator>
   </v-container>
 </template>
-<script>
 
+<script>
 export default {
   data: () => ({
     itemsPerPage: 30,
@@ -70,10 +86,15 @@ export default {
     title: '',
     content: '',
     where: '',
-    what: ''
+    what: '',
+    name: '',
+    phone: '',
+    money: '',
+    value: ''
   }),
-  mounted () {
+  created () {
     this.get()
+    this.read()
   },
   methods: {
     async post () {
@@ -105,6 +126,15 @@ export default {
     },
     del () {
 
+    },
+
+    userInfoEdit () {
+      this.$firebase.database().ref('users/' + this.$store.state.user.uid).set({ 이름: this.name, 전화번호: this.phone, 계좌번호: this.money })
+    },
+    read () {
+      this.$firebase.database().ref('users/' + this.$store.state.user.uid).on('value', d => {
+        this.value = d.val()
+      })
     }
   }
 }

@@ -1,31 +1,43 @@
 <template>
+<v-app>
   <v-card
     color="grey lighten-4"
     flat
     height="200px"
     tile
   >
-    <v-toolbar dense>
+    <v-app-bar dense color="white">
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-      <v-toolbar-title>준호건설 출퇴근 시스템</v-toolbar-title>
+      <v-app-bar-title>준호건설 출퇴근 시스템</v-app-bar-title>
 
       <v-spacer></v-spacer>
-
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
+      <v-app-bar-title v-if="$store.state.user">{{ $store.state.user ? $store.state.user.displayName : '사용자' }}</v-app-bar-title>
+      <v-spacer></v-spacer>
+      <v-flex xs2>
+      <v-btn icon v-if="$store.state.user" @click="signOut" color="orange">
+        로그아웃
       </v-btn>
-
-      <v-btn icon>
-        <v-icon>mdi-heart</v-icon>
-      </v-btn>
-
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-    </v-toolbar>
-    <v-content>
+      </v-flex>
+    </v-app-bar>
+    <v-main>
       <router-view/>
-    </v-content>
+    </v-main>
   </v-card>
+</v-app>
 </template>
+
+<script>
+export default {
+  data () {
+    return {
+    }
+  },
+  methods: {
+    async signOut () {
+      const r = await this.$firebase.auth().signOut()
+      console.log(r)
+    }
+  }
+}
+</script>
