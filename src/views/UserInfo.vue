@@ -2,7 +2,10 @@
   <v-container fluid>
 
       <v-card-text>
-        {{value}}
+        <h3>이름 : {{value['이름']}}</h3>
+        <h3>전화 : {{value['전화번호']}}</h3>
+        <h3>계좌 : {{value['계좌번호']}}</h3>
+        <h3>구분 : {{value['직위']}}</h3>
       </v-card-text>
       <a >이 중 맞지 않거나 작성되지 않는 정보가 있다면 제대로 입력해주세요 </a>
     <v-row>
@@ -47,6 +50,7 @@
     </v-row>
     <v-card-actions>
         <v-spacer></v-spacer>
+        <v-btn @click="gotoHome" color="orange" dark>홈으로 돌아가기</v-btn>
         <v-btn @click="userInfoEdit" color="success">수정하기</v-btn>
       </v-card-actions>
   </v-container>
@@ -60,12 +64,17 @@ export default {
     name: '',
     phone: '',
     money: '',
-    job: ''
+    job: '',
+    value: ''
   }),
   created () {
     this.read()
   },
   methods: {
+    gotoHome () {
+      this.$router.push('/usermain')
+    },
+
     userInfoEdit () {
       this.$firebase.database().ref('users/' + this.$store.state.user.uid).set({
         이름: this.name,

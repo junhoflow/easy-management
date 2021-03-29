@@ -1,35 +1,21 @@
 <template>
   <v-container fluid>
-    <v-card>
-      <v-subheader>개인 정보</v-subheader>
-      <v-card-text>
-        <v-text-field v-model="name" label="이름"></v-text-field>
-        <v-text-field v-model="phone" label="전화번호"></v-text-field>
-        <v-text-field v-model="money" label="계좌번호"></v-text-field>
-        <a >정확하게 입력하셔야 원활한 송금이 이루어질 수 있습니다</a>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn @click="userInfoEdit">수정하기</v-btn>
-      </v-card-actions>
-      <v-card-text>
-        {{value}}
-      </v-card-text>
-    </v-card>
+    <v-layout margin>
+      <v-spacer></v-spacer>
+      <v-btn color="primary" width="220" @click="infoPage">내 정보 수정하기(필독!!)</v-btn>
+      <v-spacer></v-spacer>
+    </v-layout>
     <v-layout>
       <v-text-field
-            v-model="title"
-            label="일할 장소"
-            prepend-icon="mdi-map-marker"
-          ></v-text-field>
-
-          <v-text-field
-          v-model="content"
-            label="할 일"
-          ></v-text-field>
-      <v-flex xs3>
+          v-model="title"
+          label="일할 장소"
+          prepend-icon="mdi-map-marker"
+        ></v-text-field>
+        <v-text-field
+        v-model="content"
+          label="할 일"
+        ></v-text-field>
         <v-btn color="success" @click="post">출근하기</v-btn>
-      </v-flex>
     </v-layout>
     <v-data-iterator
       :items="items"
@@ -126,6 +112,9 @@ export default {
     },
     del () {
 
+    },
+    infoPage () {
+      this.$router.push('/userInfo')
     },
 
     userInfoEdit () {

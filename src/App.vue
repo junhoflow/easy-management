@@ -14,11 +14,9 @@
       <v-spacer></v-spacer>
       <v-app-bar-title v-if="$store.state.user">{{ $store.state.user ? $store.state.user.displayName : '사용자' }}</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-flex xs2>
-      <v-btn icon v-if="$store.state.user" @click="signOut" color="orange">
+      <v-btn v-if="$store.state.user" @click="signOut" color="#a3a3a3">
         로그아웃
       </v-btn>
-      </v-flex>
     </v-app-bar>
     <v-main>
       <router-view/>
