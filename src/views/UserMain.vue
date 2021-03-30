@@ -1,10 +1,17 @@
 <template>
+<v-card :style="backGroundColor">
   <v-container fluid>
     <v-layout margin>
       <v-spacer></v-spacer>
-      <v-btn color="primary" width="220" @click="infoPage">내 정보 수정하기(필독!!)</v-btn>
+      <v-btn color="primary" width="50%" min-width="200" @click="infoPage">내 정보 입력하기(필수)</v-btn>
       <v-spacer></v-spacer>
     </v-layout>
+    <v-layout>
+      <v-spacer></v-spacer>
+    <h1 v-if="InWork" style="color: black">-출근중-</h1>
+    <v-spacer></v-spacer>
+    </v-layout>
+    <v-card>
     <v-layout>
       <v-text-field
           v-model="title"
@@ -15,9 +22,16 @@
         v-model="content"
           label="할 일"
         ></v-text-field>
-        <v-btn color="success" @click="post">출근하기</v-btn>
     </v-layout>
-    <p>{{yes}}</p>
+    <v-layout>
+    <v-spacer></v-spacer>
+    <v-btn color="success" width="45%" height="40" @click="post">출근하기</v-btn>
+    <v-spacer></v-spacer>
+    <v-btn color="red" width="45%" height="40" dark @click="OutWork">퇴근하기</v-btn>
+    <v-spacer></v-spacer>
+    </v-layout>
+    </v-card>
+    <v-spacer></v-spacer>
     <v-data-iterator
       :items="items"
       :items-per-page.sync="itemsPerPage"
@@ -35,7 +49,7 @@
           >
             <v-card>
               <v-card-title class="subheading font-weight-bold">
-                {{ item['title'] }}
+                {{ item['날짜'] }}
               </v-card-title>
 
               <v-divider></v-divider>
@@ -45,14 +59,14 @@
                 <v-list-item>
                   <v-list-item-content>일한 장소 :</v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item["where"] }}
+                    {{ item["장소"] }}
                   </v-list-item-content>
                 </v-list-item>
 
                 <v-list-item>
                   <v-list-item-content>한 일 :</v-list-item-content>
                   <v-list-item-content class="align-end">
-                    {{ item["what"] }}
+                    {{ item["내용"] }}
                   </v-list-item-content>
                 </v-list-item>
 
@@ -63,6 +77,7 @@
       </template>
     </v-data-iterator>
   </v-container>
+</v-card>
 </template>
 
 <script>
@@ -78,8 +93,10 @@ export default {
     phone: '',
     money: '',
     value: '',
-    count: 0,
-    yes: ''
+    backGroundColor: {
+      backgroundColor: 'white'
+    },
+    InWork: false
   }),
   created () {
     this.get()
@@ -94,22 +111,19 @@ export default {
       //   title: dateTime, where: this.title, what: this.content
       // })
       await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime).set({
-        title: dateTime, where: this.title, what: this.content
+        날짜: dateTime, 장소: this.title, 내용: this.content
       })
       this.title = ''
       this.content = ''
-      this.count++
+      this.backGroundColor.backgroundColor = '#9cd6ff'
+      this.InWork = true
       await this.get()
     },
     async get () {
       await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/').on('value', d => {
         this.items = []
         Object.values(d.val())
-        console.log(d)
-        console.log(Object)
-        console.log(Object.values(d.val()))
         this.items = Object.values(d.val())
-      //  this.yes = d.val()
       })
     },
     update () {
@@ -120,6 +134,10 @@ export default {
     },
     infoPage () {
       this.$router.push('/userInfo')
+    },
+    OutWork () {
+      this.InWork = false
+      this.backGroundColor.backgroundColor = 'white'
     }
   }
 }

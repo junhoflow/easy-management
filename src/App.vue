@@ -9,12 +9,12 @@
     <v-app-bar dense color="white">
       <v-app-bar-nav-icon></v-app-bar-nav-icon>
 
-      <v-app-bar-title>준호건설 출퇴근 시스템</v-app-bar-title>
+      <v-app-bar-title>출퇴근 시스템</v-app-bar-title>
 
       <v-spacer></v-spacer>
-      <v-app-bar-title v-if="$store.state.user">{{ $store.state.user ? $store.state.user.displayName : '사용자' }}</v-app-bar-title>
+      <a v-if="$store.state.user">{{ $store.state.user ? $store.state.user.displayName : '사용자' }}</a>
       <v-spacer></v-spacer>
-      <v-btn v-if="$store.state.user" @click="signOut" color="#a3a3a3">
+      <v-btn v-if="$store.state.user" icon @click="signOut" color="#a3a3a3">
         로그아웃
       </v-btn>
     </v-app-bar>

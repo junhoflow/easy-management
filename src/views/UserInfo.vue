@@ -51,11 +51,6 @@
           <v-select v-model="job" :rules="[rules.required]" :items="['일용직', '정규직']" required></v-select>
       </v-col>
     </v-row>
-    <v-row>
-      <v-spacer></v-spacer>
-      4가지 정보 모두 다 입력하셨나요?
-      <v-spacer></v-spacer>
-    </v-row>
     <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn @click="gotoHome" color="orange" dark>홈으로 돌아가기</v-btn>
@@ -87,7 +82,7 @@ export default {
     },
 
     userInfoEdit () {
-      this.$firebase.database().ref('users/' + this.$store.state.user.uid).set({
+      this.$firebase.database().ref('users/' + this.$store.state.user.uid).update({
         이름: this.name,
         전화번호: this.phone,
         계좌번호: this.money,
