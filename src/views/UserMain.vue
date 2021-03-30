@@ -18,16 +18,108 @@
           label="일할 장소"
           prepend-icon="mdi-map-marker"
         ></v-text-field>
+    </v-layout>
+    <v-layout>
         <v-text-field
         v-model="content"
           label="할 일"
+          prepend-icon="mdi-note-multiple-outline"
         ></v-text-field>
     </v-layout>
     <v-layout>
+        <v-text-field
+        v-model="code"
+          label="인증코드"
+          prepend-icon="mdi-account-check"
+        ></v-text-field>
+    </v-layout>
+    <v-layout>
+      <v-spacer></v-spacer>
+    <v-dialog
+      v-model="dialog"
+      width="70%">
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          color="success"
+          v-bind="attrs"
+          v-on="on"
+          width="45%" height="40"
+          @click="nowTime"
+        >
+          출근하기
+        </v-btn>
+      </template>
+
+      <v-card>
+        <v-card-title>
+          {{dateTime}}
+        </v-card-title>
+
+        <v-card-text
+        v-if="VerifyCode == code">
+          <h3>출근하시겠습니까?</h3>
+        </v-card-text>
+        <v-card-text
+        v-if="VerifyCode != code">
+          <h3>인증코드가 맞지 않습니다. 담당자에게 문의하세요</h3>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            v-if="VerifyCode == code"
+            @click="post"
+          >
+            출근하기
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-spacer></v-spacer>
-    <v-btn color="success" width="45%" height="40" @click="post">출근하기</v-btn>
-    <v-spacer></v-spacer>
-    <v-btn color="red" width="45%" height="40" dark @click="OutWork">퇴근하기</v-btn>
+    <v-dialog
+      v-model="dialog2"
+      width="70%"
+    >
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          color="red"
+          dark
+          v-bind="attrs"
+          v-on="on"
+          width="45%" height="40"
+          @click="nowTime"
+        >
+          퇴근하기
+        </v-btn>
+      </template>
+
+      <v-card>
+        <v-card-title>
+          {{dateTime}}
+        </v-card-title>
+
+        <v-card-text>
+          <h3>퇴근하시겠습니까?</h3>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="OutWork"
+          >
+            퇴근하기
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-spacer></v-spacer>
     </v-layout>
     </v-card>
@@ -64,7 +156,7 @@
                 </v-list-item>
 
                 <v-list-item>
-                  <v-list-item-content>한 일 :</v-list-item-content>
+                  <v-list-item-content>내용 :</v-list-item-content>
                   <v-list-item-content class="align-end">
                     {{ item["내용"] }}
                   </v-list-item-content>
@@ -96,7 +188,12 @@ export default {
     backGroundColor: {
       backgroundColor: 'white'
     },
-    InWork: false
+    InWork: false,
+    dialog: false,
+    dialog2: false,
+    dateTime: '',
+    code: '',
+    VerifyCode: 1234
   }),
   created () {
     this.get()
@@ -115,8 +212,9 @@ export default {
       })
       this.title = ''
       this.content = ''
-      this.backGroundColor.backgroundColor = '#9cd6ff'
+      this.backGroundColor.backgroundColor = '#99ff1c'
       this.InWork = true
+      this.dialog = false
       await this.get()
     },
     async get () {
@@ -124,6 +222,9 @@ export default {
         this.items = []
         Object.values(d.val())
         this.items = Object.values(d.val())
+        this.$firebase.database().ref('code').on('value', d => {
+          this.VerifyCode = d.val()
+        })
       })
     },
     update () {
@@ -138,6 +239,14 @@ export default {
     OutWork () {
       this.InWork = false
       this.backGroundColor.backgroundColor = 'white'
+      this.dialog2 = false
+    },
+    nowTime () {
+      const today = new Date()
+      const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
+      const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
+      const dateTime = date + ' ' + time
+      this.dateTime = dateTime
     }
   }
 }
