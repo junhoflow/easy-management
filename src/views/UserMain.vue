@@ -1,4 +1,5 @@
 <template>
+<v-app>
 <v-card :style="backGroundColor">
   <v-container fluid>
     <v-layout margin>
@@ -27,6 +28,13 @@
         ></v-text-field>
     </v-layout>
     <v-layout>
+      <v-select
+          v-model="pay"
+          :items= "['100000', '110000', '120000', '130000', '140000', '150000', '160000']"
+          menu-props="auto"
+          label="하루 일당"
+          prepend-icon="mdi-cash"
+        ></v-select>
         <v-text-field
         v-model="code"
           label="인증코드"
@@ -58,6 +66,7 @@
         <v-card-text
         v-if="VerifyCode == code">
           <h3>출근하시겠습니까?</h3>
+          <a>'일할 장소'와 '할 일' 모두 작성하셨나요?</a>
         </v-card-text>
         <v-card-text
         v-if="VerifyCode != code">
@@ -72,7 +81,7 @@
             color="primary"
             text
             v-if="VerifyCode == code"
-            @click="post"
+            @click="startWork"
           >
             출근하기
           </v-btn>
@@ -105,7 +114,10 @@
         <v-card-text>
           <h3>퇴근하시겠습니까?</h3>
         </v-card-text>
-
+        <v-text-field
+        v-model="details"
+          label="세부사항 (추가근무내역 등)"
+        ></v-text-field>
         <v-divider></v-divider>
 
         <v-card-actions>
@@ -113,7 +125,7 @@
           <v-btn
             color="primary"
             text
-            @click="OutWork"
+            @click="finishWork"
           >
             퇴근하기
           </v-btn>
@@ -132,7 +144,7 @@
       <template v-slot:default="props">
         <v-row>
           <v-col
-            v-for="item in props.items"
+            v-for="item in props.items.slice().reverse()"
             :key="item.name"
             cols="12"
             sm="6"
@@ -141,24 +153,31 @@
           >
             <v-card>
               <v-card-title class="subheading font-weight-bold">
-                {{ item['날짜'] }}
+                {{ item['구분'] }}    [  {{ item["시간"] }} ]
               </v-card-title>
 
               <v-divider></v-divider>
 
               <v-list dense>
 
-                <v-list-item>
-                  <v-list-item-content>일한 장소 :</v-list-item-content>
+                <v-list-item  v-if="item['장소'] != null">
+                  <v-list-item-content>장소 :</v-list-item-content>
                   <v-list-item-content class="align-end">
                     {{ item["장소"] }}
                   </v-list-item-content>
                 </v-list-item>
 
-                <v-list-item>
+                <v-list-item v-if="item['내용'] != null">
                   <v-list-item-content>내용 :</v-list-item-content>
                   <v-list-item-content class="align-end">
                     {{ item["내용"] }}
+                  </v-list-item-content>
+                </v-list-item>
+
+                <v-list-item  v-if="item['세부사항'] != null && item['세부사항'] != ''">
+                  <v-list-item-content>추가내용 :</v-list-item-content>
+                  <v-list-item-content class="align-end">
+                    {{ item["세부사항"] }}
                   </v-list-item-content>
                 </v-list-item>
 
@@ -170,6 +189,7 @@
     </v-data-iterator>
   </v-container>
 </v-card>
+</v-app>
 </template>
 
 <script>
@@ -192,39 +212,69 @@ export default {
     dialog: false,
     dialog2: false,
     dateTime: '',
+    dateTime2: '',
     code: '',
-    VerifyCode: 1234
+    VerifyCode: 1234,
+    details: '',
+    pay: ''
   }),
   created () {
     this.get()
   },
   methods: {
-    async post () {
-      const today = new Date()
-      const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-      const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
-      const dateTime = date + ' ' + time
-      // this.items.push({
-      //   title: dateTime, where: this.title, what: this.content
-      // })
-      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime).set({
-        날짜: dateTime, 장소: this.title, 내용: this.content
+    async startWork () {
+      const m = new Date()
+      const dateTime = m.getFullYear() + '-' +
+      ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + m.getDate()).slice(-2)
+      const dateTime2 = ('0' + m.getHours()).slice(-2) + ':' +
+      ('0' + m.getMinutes()).slice(-2) + ':' +
+      ('0' + m.getSeconds()).slice(-2)
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime + '/' + dateTime2).set({
+        구분: '출근', 시간: dateTime + ' ' + dateTime2, 장소: this.title, 내용: this.content, 하루일당: this.pay
       })
       this.title = ''
       this.content = ''
+      this.code = ''
       this.backGroundColor.backgroundColor = '#99ff1c'
       this.InWork = true
       this.dialog = false
       await this.get()
     },
+    async finishWork () {
+      const m = new Date()
+      const dateTime = m.getFullYear() + '-' +
+      ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + m.getDate()).slice(-2)
+      const dateTime2 = ('0' + m.getHours()).slice(-2) + ':' +
+      ('0' + m.getMinutes()).slice(-2) + ':' +
+      ('0' + m.getSeconds()).slice(-2)
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime + '/' + dateTime2).set({
+        구분: '퇴근', 시간: dateTime + ' ' + dateTime2, 세부사항: this.details
+      })
+      this.InWork = false
+      this.backGroundColor.backgroundColor = 'white'
+      this.dialog2 = false
+      this.details = ''
+      await this.get()
+    },
     async get () {
-      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/').on('value', d => {
+      // const m = new Date()
+      // const dateTime = m.getFullYear() + '-' +
+      // ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      // ('0' + m.getDate()).slice(-2)
+      this.$firebase.database().ref('code').on('value', d => {
+        this.VerifyCode = d.val()
+      })
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록').on('value', d => {
         this.items = []
-        Object.values(d.val())
-        this.items = Object.values(d.val())
-        this.$firebase.database().ref('code').on('value', d => {
-          this.VerifyCode = d.val()
-        })
+        let tmp = []
+        tmp = Object.values(d.val())
+        for (const key in tmp) {
+          for (const key2 in Object.values(tmp[key])) {
+            this.items.push(Object.values(tmp[key])[key2])
+          }
+        }
       })
     },
     update () {
@@ -236,16 +286,14 @@ export default {
     infoPage () {
       this.$router.push('/userInfo')
     },
-    OutWork () {
-      this.InWork = false
-      this.backGroundColor.backgroundColor = 'white'
-      this.dialog2 = false
-    },
     nowTime () {
-      const today = new Date()
-      const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate()
-      const time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds()
-      const dateTime = date + ' ' + time
+      const m = new Date()
+      const dateTime = m.getFullYear() + '-' +
+      ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + m.getDate()).slice(-2) + ' ' +
+      ('0' + m.getHours()).slice(-2) + ':' +
+      ('0' + m.getMinutes()).slice(-2) + ':' +
+      ('0' + m.getSeconds()).slice(-2)
       this.dateTime = dateTime
     }
   }
