@@ -27,6 +27,10 @@ const routes = [
     component: () => import('../views/vuex.vue')
   },
   {
+    path: '/admin',
+    component: () => import('../views/Admin.vue')
+  },
+  {
     path: '/sign',
     component: () => import('../views/sign.vue')
   },
