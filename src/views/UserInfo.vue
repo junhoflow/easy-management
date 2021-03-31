@@ -93,6 +93,10 @@ export default {
     read () {
       this.$firebase.database().ref('users/' + this.$store.state.user.uid).on('value', d => {
         this.value = d.val()
+        this.name = this.value['이름']
+        this.phone = this.value['전화번호']
+        this.money = this.value['계좌번호']
+        this.job = this.value['직위']
       })
     }
   }
