@@ -15,11 +15,13 @@
     </v-layout>
     <v-card>
     <v-layout>
-      <v-text-field
+      <v-select
           v-model="title"
-          label="일할 장소"
+          :items="places"
+          menu-props="auto"
+          label="장소"
           prepend-icon="mdi-map-marker"
-        ></v-text-field>
+        ></v-select>
     </v-layout>
     <v-layout>
         <v-text-field
@@ -217,7 +219,12 @@ export default {
     code: '',
     VerifyCode: 1234,
     details: '',
-    pay: ''
+    pay: 0,
+    places: [],
+    username: '',
+    todayWorkers: 0,
+    todayPay: 0,
+    totalPay: 0
   }),
   created () {
     this.get()
@@ -234,6 +241,24 @@ export default {
       await this.$firebase.database().ref('users/' + this.$store.state.user.uid + '/출근기록/' + dateTime + '/' + dateTime2).set({
         구분: '출근', 시간: dateTime + ' ' + dateTime2, 장소: this.title, 내용: this.content, 하루일당: this.pay
       })
+      await this.$firebase.database().ref('users/' + this.$store.state.user.uid).on('value', d => {
+        this.username = d.val().이름
+      })
+      await this.$firebase.database().ref('area/' + this.title + '/기록/' + dateTime + '/' + dateTime2).set({
+        이름: this.username, 시간: dateTime + ' ' + dateTime2, 내용: this.content, 하루일당: this.pay
+      })
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/하루직원수/' + dateTime).on('value', d => {
+        this.todayWorkers = d.val()
+      })
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/하루인건비/' + dateTime).on('value', d => {
+        this.todayPay = d.val()
+      })
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/총인건비').on('value', d => {
+        this.totalPay = d.val()
+      })
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/하루직원수/' + dateTime).set(this.todayWorkers += 1)
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/하루인건비/' + dateTime).set(this.todayPay += parseInt(this.pay))
+      await this.$firebase.database().ref('area/' + this.title + '/카운트/총인건비').set(this.totalPay += parseInt(this.pay))
       this.title = ''
       this.content = ''
       this.code = ''
@@ -271,6 +296,11 @@ export default {
           for (const key2 in Object.values(tmp[key])) {
             this.items.push(Object.values(tmp[key])[key2])
           }
+        }
+      })
+      this.$firebase.database().ref().on('value', d => {
+        for (const key in d.val().area) {
+          this.places.push(key)
         }
       })
     },

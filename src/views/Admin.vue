@@ -58,6 +58,11 @@
                       label="구역 이름"
                     ></v-text-field>
                   </v-col>
+                    <v-text-field
+                      v-model="editedItem.todo"
+                      outlined
+                      label="내용"
+                    ></v-text-field>
                 </v-row>
               </v-container>
             </v-card-text>
@@ -97,13 +102,6 @@
     <template v-slot:[`item.actions`]="{ item }">
       <v-icon
         small
-        class="mr-2"
-        @click="editItem(item)"
-      >
-        mdi-pencil
-      </v-icon>
-      <v-icon
-        small
         @click="deleteItem(item)"
       >
         mdi-delete
@@ -111,10 +109,10 @@
     </template>
     <template v-slot:no-data>
       <v-btn
-        color="primary"
-        @click="initialize"
+        color="white"
+        @click="getinfo"
       >
-        Reset
+        구역을 추가하세요
       </v-btn>
     </template>
   </v-data-table>
@@ -126,41 +124,51 @@ export default {
   data: () => ({
     dialog: false,
     dialogDelete: false,
+    todayPeople: 0,
+    todayPay: 0,
+    totalPay: 0,
     headers: [
       {
         text: '구역 이름',
         align: 'start',
-        sortable: false,
-        value: 'name'
+        value: '위치'
       },
-      { text: '오늘 투입된 사람 수', value: 'todayPeople' },
-      { text: '하루 인건비', value: 'todayPay' },
-      { text: '총 인건비', value: 'totalPay' },
-      { text: '수정/삭제', value: 'actions', sortable: false }
+      { text: '내용', value: '내용', sortable: false },
+      { text: '오늘 투입된 사람 수', value: '하루직원수' },
+      { text: '하루 인건비', value: '하루인건비' },
+      { text: '총 인건비', value: '총인건비' },
+      { text: '삭제하기', value: 'actions', sortable: false }
     ],
     items: [],
     editedIndex: -1,
     editedItem: {
-      name: '',
+      위치: '',
+      내용: '',
       todayPeople: 0,
       todayPay: 0,
       totalPay: 0,
-      protein: 0
+      todo: ''
     },
     defaultItem: {
       name: '',
       todayPeople: 0,
       todayPay: 0,
       totalPay: 0,
-      protein: 0
+      todo: ''
     },
     code: '',
-    VerifyCode: ''
+    VerifyCode: '',
+    tmpitem: [],
+    todayWorkers: 0,
+    todayfee: 0,
+    totalfee: 0,
+    yes: [],
+    count: 0
   }),
 
   computed: {
     formTitle () {
-      return this.editedIndex === -1 ? '구역 추가' : 'Edit Item'
+      return this.editedIndex === -1 ? '구역 추가' : '수정하기'
     }
   },
 
@@ -174,58 +182,24 @@ export default {
   },
 
   created () {
-    this.initialize()
-    this.get()
+    this.getinfo()
   },
   methods: {
-    initialize () {
-      this.items = [
-        {
-          name: 'Frozen Yogurt',
-          todayPeople: 159,
-          todayPay: 6.0,
-          totalPay: 24,
-          protein: 4.0
-        },
-        {
-          name: 'Ice cream sandwich',
-          todayPeople: 237,
-          todayPay: 9.0,
-          totalPay: 37,
-          protein: 4.3
-        },
-        {
-          name: 'Eclair',
-          todayPeople: 262,
-          todayPay: 16.0,
-          totalPay: 23,
-          protein: 6.0
-        }
-      ]
-    },
     changeCode () {
       this.$firebase.database().ref('code').set(this.code)
     },
-    get () {
-      this.$firebase.database().ref('code').on('value', d => {
-        this.VerifyCode = d.val()
-      })
-    },
-    editItem (item) {
-      this.editedIndex = this.items.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialog = true
-    },
-
     deleteItem (item) {
       this.editedIndex = this.items.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
+      this.tmpitem = item
     },
 
     deleteItemConfirm () {
+      this.$firebase.database().ref('area/' + this.tmpitem['위치']).remove()
       this.items.splice(this.editedIndex, 1)
       this.closeDelete()
+      this.getinfo()
     },
 
     close () {
@@ -244,13 +218,61 @@ export default {
       })
     },
 
-    save () {
+    async save () {
       if (this.editedIndex > -1) {
         Object.assign(this.items[this.editedIndex], this.editedItem)
       } else {
         this.items.push(this.editedItem)
+        await this.$firebase.database().ref('area/' + this.editedItem.name).update({
+          위치: this.editedItem.name, 내용: this.editedItem.todo, 카운트: 0
+        })
+        await this.$firebase.database().ref('area/' + this.editedItem.name + '/카운트').update({
+          하루직원수: 0, 하루인건비: 0, 총인건비: 0
+        })
+        this.getinfo()
       }
       this.close()
+    },
+
+    async getinfo () {
+      this.$firebase.database().ref('code').on('value', d => {
+        this.VerifyCode = d.val()
+      })
+      const m = new Date()
+      const dateTime = m.getFullYear() + '-' +
+      ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + m.getDate()).slice(-2)
+
+      this.$firebase.database().ref('area').on('value', d => {
+        for (const areaName in d.val()) {
+          this.$firebase.database().ref('area').on('value', d => {
+            this.items = []
+            let tmp = []
+            let tmp2 = []
+            tmp = Object.values(d.val())
+            for (const key in tmp) {
+              this.$firebase.database().ref('area/' + areaName + '/카운트/하루직원수/' + dateTime).on('value', d => {
+                this.todayWorkers = d.val() + '명'
+                console.log(d.val())
+              })
+              this.$firebase.database().ref('area/' + areaName + '/카운트/하루인건비/' + dateTime).on('value', d => {
+                this.todayfee = d.val() + '원'
+              })
+              this.$firebase.database().ref('area/' + areaName + '/카운트/총인건비').on('value', d => {
+                this.totalfee = d.val() + '원'
+              })
+              tmp2 = tmp[key]
+              tmp2.하루직원수 = this.todayWorkers
+              tmp2.하루인건비 = this.todayfee
+              tmp2.총인건비 = this.totalfee
+              console.log(tmp)
+              this.yes = tmp
+            }
+          })
+        }
+        console.log(Object.values(d.val()))
+        this.items = this.yes
+      })
     }
   }
 }
