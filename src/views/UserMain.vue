@@ -5,7 +5,6 @@
     <v-layout margin>
       <v-spacer></v-spacer>
       <v-btn color="primary" width="50%" min-width="200" @click="infoPage">내 정보 입력하기(필수)</v-btn>
-      <v-btn color="orange" width="20%" @click="admin">A</v-btn>
       <v-spacer></v-spacer>
     </v-layout>
     <v-layout>
@@ -306,9 +305,6 @@ export default {
     },
     infoPage () {
       this.$router.push('/userInfo')
-    },
-    admin () {
-      this.$router.push('/admin')
     },
     nowTime () {
       const m = new Date()

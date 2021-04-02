@@ -13,7 +13,7 @@
   <v-data-table
     :headers="headers"
     :items="items"
-    sort-by="todayPeople"
+    sort-by="위치"
     class="elevation-1"
   >
     <template v-slot:top>
@@ -219,19 +219,22 @@ export default {
     },
 
     async save () {
-      if (this.editedIndex > -1) {
-        Object.assign(this.items[this.editedIndex], this.editedItem)
-      } else {
-        this.items.push(this.editedItem)
-        await this.$firebase.database().ref('area/' + this.editedItem.name).update({
-          위치: this.editedItem.name, 내용: this.editedItem.todo, 카운트: 0
-        })
-        await this.$firebase.database().ref('area/' + this.editedItem.name + '/카운트').update({
-          하루직원수: 0, 하루인건비: 0, 총인건비: 0
-        })
-        this.getinfo()
-      }
+      const m = new Date()
+      const dateTime = m.getFullYear() + '-' +
+      ('0' + (m.getMonth() + 1)).slice(-2) + '-' +
+      ('0' + m.getDate()).slice(-2)
+      this.items.push(this.editedItem)
+      this.$firebase.database().ref('area/' + this.editedItem.name).update({
+        위치: this.editedItem.name, 내용: this.editedItem.todo, 카운트: 0
+      })
+      this.$firebase.database().ref('area/' + this.editedItem.name + '/카운트').update({
+        총인건비: 0
+      })
+      this.$firebase.database().ref('area/' + this.editedItem.name + '/카운트/하루인건비/' + dateTime).set(0)
+      this.$firebase.database().ref('area/' + this.editedItem.name + '/카운트/하루직원수/' + dateTime).set(0)
+
       this.close()
+      location.reload()
     },
 
     async getinfo () {
@@ -250,29 +253,36 @@ export default {
             let tmp = []
             let tmp2 = []
             tmp = Object.values(d.val())
-            for (const key in tmp) {
-              this.$firebase.database().ref('area/' + areaName + '/카운트/하루직원수/' + dateTime).on('value', d => {
-                this.todayWorkers = d.val() + '명'
-                console.log(d.val())
-              })
-              this.$firebase.database().ref('area/' + areaName + '/카운트/하루인건비/' + dateTime).on('value', d => {
-                this.todayfee = d.val() + '원'
-              })
-              this.$firebase.database().ref('area/' + areaName + '/카운트/총인건비').on('value', d => {
-                this.totalfee = d.val() + '원'
-              })
-              tmp2 = tmp[key]
-              tmp2.하루직원수 = this.todayWorkers
-              tmp2.하루인건비 = this.todayfee
-              tmp2.총인건비 = this.totalfee
-              console.log(tmp)
-              this.yes = tmp
-            }
+            this.$firebase.database().ref('area/' + areaName + '/카운트/하루직원수/' + dateTime).on('value', d => {
+              let tmp = 0
+              tmp = d.val()
+              if (tmp === null) tmp = 0
+              this.todayWorkers = tmp + '명'
+            })
+            this.$firebase.database().ref('area/' + areaName + '/카운트/하루인건비/' + dateTime).on('value', d => {
+              let tmp = 0
+              tmp = d.val()
+              if (tmp === null) tmp = 0
+              this.todayfee = tmp + '원'
+            })
+            this.$firebase.database().ref('area/' + areaName + '/카운트/총인건비').on('value', d => {
+              let tmp = 0
+              tmp = d.val()
+              if (tmp === null) tmp = 0
+              this.totalfee = tmp + '원'
+            })
+            tmp2 = tmp[this.count]
+            tmp2.하루직원수 = this.todayWorkers
+            tmp2.하루인건비 = this.todayfee
+            tmp2.총인건비 = this.totalfee
+            this.yes.push(tmp2)
           })
+          this.count++
         }
-        console.log(Object.values(d.val()))
         this.items = this.yes
       })
+      this.count = 0
+      this.yes = []
     }
   }
 }

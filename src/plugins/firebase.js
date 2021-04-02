@@ -35,6 +35,9 @@ firebase.auth().onAuthStateChanged((user) => {
   console.log(user)
   if (user) {
     router.push('/usermain')
+    if (user.email === 'easymanagesystem@gmail.com') {
+      router.push('/admin')
+    }
   } else {
     router.push('/sign')
   }
