@@ -10,17 +10,20 @@
     </v-col>
   </v-row>
   <template>
+    <v-btn @click="areaPage">구역 관리</v-btn>
+    <v-btn @click="usersPage">직원 관리</v-btn>
   <v-data-table
     :headers="headers"
     :items="items"
-    sort-by="위치"
+    sort-by="총인건비"
     class="elevation-1"
+    @click:row="handleClick"
   >
     <template v-slot:top>
       <v-toolbar
         flat
       >
-        <v-toolbar-title>관리</v-toolbar-title>
+        <v-toolbar-title>구역 관리</v-toolbar-title>
         <v-divider
           class="mx-4"
           inset
@@ -188,6 +191,12 @@ export default {
     changeCode () {
       this.$firebase.database().ref('code').set(this.code)
     },
+    areaPage () {
+      this.$router.push('/admin')
+    },
+    usersPage () {
+      this.$router.push('/admin_users')
+    },
     deleteItem (item) {
       this.editedIndex = this.items.indexOf(item)
       this.editedItem = Object.assign({}, item)
@@ -200,6 +209,7 @@ export default {
       this.items.splice(this.editedIndex, 1)
       this.closeDelete()
       this.getinfo()
+      location.reload()
     },
 
     close () {
@@ -236,6 +246,10 @@ export default {
       this.close()
       location.reload()
     },
+    handleClick (value) {
+      console.log(value)
+      // 구역 이름 클릭할때의 이벤트 추가
+    },
 
     async getinfo () {
       this.$firebase.database().ref('code').on('value', d => {
@@ -257,19 +271,19 @@ export default {
               let tmp = 0
               tmp = d.val()
               if (tmp === null) tmp = 0
-              this.todayWorkers = tmp + '명'
+              this.todayWorkers = tmp
             })
             this.$firebase.database().ref('area/' + areaName + '/카운트/하루인건비/' + dateTime).on('value', d => {
               let tmp = 0
               tmp = d.val()
               if (tmp === null) tmp = 0
-              this.todayfee = tmp + '원'
+              this.todayfee = tmp
             })
             this.$firebase.database().ref('area/' + areaName + '/카운트/총인건비').on('value', d => {
               let tmp = 0
               tmp = d.val()
               if (tmp === null) tmp = 0
-              this.totalfee = tmp + '원'
+              this.totalfee = tmp
             })
             tmp2 = tmp[this.count]
             tmp2.하루직원수 = this.todayWorkers
@@ -280,6 +294,7 @@ export default {
           this.count++
         }
         this.items = this.yes
+        console.log(this.items)
       })
       this.count = 0
       this.yes = []
