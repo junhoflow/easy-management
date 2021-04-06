@@ -12,6 +12,7 @@
   <template>
     <v-btn @click="areaPage">구역 관리</v-btn>
     <v-btn @click="usersPage">직원 관리</v-btn>
+    <v-btn @click="WebFirebase">Data 관리</v-btn>
   <v-data-table
     :headers="headers"
     :items="items"
@@ -226,6 +227,10 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       })
+    },
+
+    WebFirebase () {
+      window.open('https://console.firebase.google.com/project/easy-manage-system/database/easy-manage-system-default-rtdb/data')
     },
 
     async save () {
